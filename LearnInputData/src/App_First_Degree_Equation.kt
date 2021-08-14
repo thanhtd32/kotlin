@@ -1,21 +1,21 @@
 fun main(args: Array<String>) {
     var a:Double=0.0
     var b:Double=0.0
-    println("Enter a:")
+    println("Input a:")
     var s= readLine()
     if(s!=null)
         a=s.toDouble()
-    println("Enter b:")
+    println("Input b:")
     s= readLine()
     if(s!=null)
         b=s.toDouble()
     if(a==0.0 && b==0.0)
     {
-        println("Infinite solutions")
+        println("Infinite!!!")
     }
     else if(a==0.0 && b!=0.0)
     {
-        println("No solutions")
+        println("Unknown!!!")
     }
     else
     {
