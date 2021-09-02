@@ -33,7 +33,7 @@ class JSonFileFactory {
     /**
      * @author TranDuy Thanh
      * @param path:storage path to read data
-     * @return Product list MutableList
+     * @return courses list MutableList
      */
     fun ReadFile(path:String):MutableList<Course>
     {
