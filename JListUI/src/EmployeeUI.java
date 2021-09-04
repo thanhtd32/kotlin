@@ -21,7 +21,7 @@ public class EmployeeUI {
     DefaultListModel<Employee>model;
     public EmployeeUI()
     {
-        frame=new JFrame("Learn JCombobox");
+        frame=new JFrame("Learn JList");
         frame.setContentPane(pnMain);
         //add item for JCombobox
         cboEmployeeGender.addItem("Woman");
