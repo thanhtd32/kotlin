@@ -7,7 +7,7 @@ fun main(args: Array<String>) {
     //Create a GSon object
     var gson = Gson()
     //create a string json:
-    var json = "{Id:ID123,Name:Kotlin,Credit:5}"
+    var json = "{\"Id\":\"C12\",\"Name\":\"Kotlin Language\", \"Credit\":3}"
     //print the course information by json string
     println(json)
     //print the course information by object model
