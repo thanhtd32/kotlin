@@ -3,9 +3,9 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.AsyncResult
 import io.vertx.core.Promise
 import io.vertx.core.http.HttpServer
-import io.vertx.core.json.Json
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
+import io.vertx.ext.web.handler.BodyHandler
 
 
 class ProductVerticle : AbstractVerticle() {
@@ -32,9 +32,14 @@ class ProductVerticle : AbstractVerticle() {
     override fun start(startPromise: Promise<Void>?) {
         createExampleData()
         var router = Router.router(vertx)
+
         router["/api/products"].handler(this::getAllProducts)
         router["/api/sortedproducts"].handler(this::getSortedProducts)
         router["/api/products/:id"].handler(this::getOneProduct)
+        router.route("/api/products*").handler(BodyHandler.create())
+        router.post("/api/products").handler(this::insertNewProduct)
+        router.put("/api/products").handler(this::updateProduct)
+        router.delete("/api/products/:id").handler(this::deleteProduct)
         vertx.createHttpServer()
             .requestHandler(router)
             .listen(config().getInteger("http.port", 8080))
@@ -88,5 +93,51 @@ class ProductVerticle : AbstractVerticle() {
             else
                 response.end("")
         }
+    }
+
+    //Function to receive Json Object Product to save to Server
+    fun insertNewProduct(routingContext: RoutingContext) {
+        var response = routingContext.response()
+        response.putHeader("content-type",
+            "application/json;charset=UTF8")
+        try {
+            var gson = Gson()
+            var p =gson.fromJson(
+                routingContext.body.toString(),
+                Product::class.java)
+            products.add(p)
+            response.end("true")
+        } catch (ex: Exception) {
+            response.end(ex.message)
+        }
+    }
+
+    fun updateProduct(routingContext: RoutingContext) {
+        val response = routingContext.response()
+        response.putHeader("content-type",
+            "application/json;charset=UTF8")
+        var gson = Gson()
+        var p =gson.fromJson(
+            routingContext.body.toString(),
+            Product::class.java)
+        var pos=products.indexOfFirst { x->x.id==p.id }
+        if(pos!=-1) {
+            products.set(pos, p)
+            response.end("true")
+        }
+        else
+            response.end("false")
+    }
+    private fun deleteProduct(routingContext: RoutingContext) {
+        var response = routingContext.response()
+        response.putHeader("content-type",
+            "application/json;charset=UTF-8")
+        var sid = routingContext.request().getParam("id")
+        var id = sid.toInt()
+        var p = products.firstOrNull { x->x.id==id }
+        if (p!=null) {
+            products.remove(p)
+            response.end("true")
+        } else response.end("false")
     }
 }
