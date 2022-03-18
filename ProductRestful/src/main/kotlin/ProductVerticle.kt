@@ -1,11 +1,12 @@
-import io.vertx.core.AbstractVerticle
-import io.vertx.ext.web.RoutingContext
 import com.google.gson.Gson
-import io.vertx.ext.web.Router
+import io.vertx.core.AbstractVerticle
 import io.vertx.core.AsyncResult
 import io.vertx.core.Promise
 import io.vertx.core.http.HttpServer
-import java.util.ArrayList
+import io.vertx.core.json.Json
+import io.vertx.ext.web.Router
+import io.vertx.ext.web.RoutingContext
+
 
 class ProductVerticle : AbstractVerticle() {
     private var products = ArrayList<Product>()
@@ -31,9 +32,9 @@ class ProductVerticle : AbstractVerticle() {
     override fun start(startPromise: Promise<Void>?) {
         createExampleData()
         var router = Router.router(vertx)
-        router["/api/products"].handler {
-                routingContext: RoutingContext ->
-                getAllProducts(routingContext) }
+        router["/api/products"].handler(this::getAllProducts)
+        router["/api/sortedproducts"].handler(this::getSortedProducts)
+        router["/api/products/:id"].handler(this::getOneProduct)
         vertx.createHttpServer()
             .requestHandler(router)
             .listen(config().getInteger("http.port", 8080))
@@ -45,5 +46,47 @@ class ProductVerticle : AbstractVerticle() {
                     startPromise!!.fail(result.cause())
                 }
             }
+    }
+    private fun getSortedProducts(routingContext: RoutingContext) {
+        var response = routingContext.response()
+        response.putHeader("content-type", "application/json;charset=UTF-8")
+        //parameter taken from user
+        val sort = routingContext.request().getParam("sort")
+        if (sort == null) {
+            //if no parameters are passed, it will give an error API
+            routingContext.response().setStatusCode(400).end()
+        }
+        else
+        {
+            if (sort.equals("desc", ignoreCase = true)) {
+                products.sortBy { x->x.unitPrice }
+            }
+            else
+                products.sortByDescending { x->x.unitPrice }
+            var gson = Gson()
+            response.end(gson.toJson(products))
+        }
+    }
+
+    //returns detailed information of a Product by Id
+     fun getOneProduct(routingContext: RoutingContext) {
+        var response = routingContext.response()
+        response.putHeader("content-type",
+            "application/json;charset=utf-8")
+        //get input id from URL
+        var sid = routingContext.request().getParam("id")
+        if (sid == null) { // if id not exist, error message
+            routingContext.response().setStatusCode(400).end()
+        } else {
+            //convert  id to int
+            var id = sid.toInt()
+            //find product by id
+            var p = products.firstOrNull { x->x.id==id }
+            var gson = Gson()
+            if(p!=null)
+                response.end(gson.toJson(p))
+            else
+                response.end("")
+        }
     }
 }
